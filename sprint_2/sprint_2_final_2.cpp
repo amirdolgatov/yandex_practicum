@@ -1,7 +1,32 @@
+https://contest.yandex.ru/contest/22781/run-report/166346604/
+
 #include <iostream>
 #include <vector>
 #include <string>
 
+/*
+-- ПРИНЦИП РАБОТЫ --
+
+Реализован калькулятор на основе стека.
+Операнды помещаются в стек.
+Оператор, введенный пользователем, применяется к числу на вершине стека и
+числу лежащему под вершиной. 
+
+-- ДОКАЗАТЕЛЬСТВО КОРРЕКТНОСТИ --
+
+В обратной польской записи в начале записаны операнды, затем 
+ариметический оператор, что легко реализовывается с помощью стека.
+
+-- ВРЕМЕННАЯ СЛОЖНОСТЬ --
+
+Каждая операция стека это O(1), соответственно при количестве операторов и операндов n,
+получим сложность n * O(1) = O(n).
+
+-- ПРОСТРАНСТВЕННАЯ СЛОЖНОСТЬ --
+
+Операнды помещаются и извлекаются из стека.
+В худшем случае, если только добавлять операнды, пространственная сложность O(n).
+*/
 
 template <class T>
 class Stack 
@@ -33,114 +58,97 @@ public:
     }
 };
 
+class Calculator
+{
+private:
+    Stack<int> stack;
+public:
+    void process_token(std::string& token)
+    {
+        if ((token == "+") || (token == "-") || (token == "*") || (token == "/"))  // operator
+        {
+            int op1, op2;
+            int result;
+            char symbol = token[0];
+
+            switch(symbol)
+            {
+                case '+': 
+                {
+                    op1 = stack.pop();
+                    op2 = stack.pop();
+                    result = op2 + op1;
+                    stack.push(result);
+                } 
+                break;
+                case '-': 
+                {
+                    op1 = stack.pop();
+                    op2 = stack.pop();
+                    result = op2 - op1;
+                    stack.push(result);
+                } 
+                break;
+                case '*': 
+                {
+                    op1 = stack.pop();
+                    op2 = stack.pop();
+                    result = op1 * op2;
+                    stack.push(result);
+                } 
+                break;
+                case '/': 
+                {
+                    op1 = stack.pop();
+                    op2 = stack.pop();
+                    result = floor_div(op2, op1);
+                    stack.push(result);
+                } 
+                break;
+            }
+        }
+        else
+        {
+            stack.push(stoi(token));                  // operand
+        }
+    }
+
+    void get_result()
+    {
+        if (stack.size() == 0)
+        {
+            std::cout << "Error\n";
+        }
+        else
+        {
+            std::cout << stack.pop() << "\n";
+        }
+    }
+
+    int floor_div(int a, int b) 
+    {
+        int q = a / b;
+        int r = a % b;
+        if (r != 0 && ((r < 0) != (b < 0))) 
+        {
+            --q;
+        }
+        return q;
+    }
+};
+
 
 int main(void)
 {
-	int n, m;
-    std::cin >> n;
-    std::cin >> m;
+    std::string token;
+    Calculator calculator;
 
-    Queue q(m);
-    std::string cmd;
-    int x;
-    bool error = true;
-
-	Stack stack;
-    char symbol = 0;
-    int op1, op2;
-    int result;
-
-    if (std::is_digit(symbol))
+    while (std::cin >> token) 
     {
-    	stack.push(to_int(symbol));
-    }
-    else
-    {
-    	switch(symbol)
-	    {
-	    	case '+': 
-	    	{
-	    		op1 = stack.pop();
-	    		op2 = stack.pop();
-	    		result = op2 + op1;
-	    		stack.push(result);
-	    	} 
-	    	break;
-	    	case '-': 
-	    	{
-	    		op1 = stack.pop();
-	    		op2 = stack.pop();
-	    		result = op2 - op1;
-	    		stack.push(result);
-	    	} 
-	    	break;
-	    	case '*': 
-	    	{
-	    		op1 = stack.pop();
-	    		op2 = stack.pop();
-	    		result = op1 * op2;
-	    		stack.push(result);
-	    	} 
-	    	break;
-	    	case '/': 
-	    	{
-	    		op1 = stack.pop();
-	    		op2 = stack.pop();
-	    		result = op2 / op1;
-	    		stack.push(result);
-	    	} 
-	    	break;
-	    }
+        calculator.process_token(token);
     }
 
-    while (n--) 
-    {
-        std::cin >> cmd;
-
-        if (cmd == "push_back") 
-        {
-            std::cin >> x;
-            error = !(q.push_back(x));
-        } 
-        if (cmd == "push_front") 
-        {
-            std::cin >> x;
-            error = !(q.push_front(x));
-        } 
-        else if (cmd == "pop_back") 
-        {
-        	int *data_ptr = q.back();
-        	if (data_ptr == nullptr)
-        	{
-        		error = true;
-        	}
-        	else
-        	{
-        		std::cout << *data_ptr << '\n';
-        		q.pop_back();
-        		error = false;
-        	}
-        } 
-        else if (cmd == "pop_front") 
-        {
-            int *data_ptr = q.front();
-        	if (data_ptr == nullptr)
-        	{
-        		error = true;
-        	}
-        	else
-        	{
-        		std::cout << *data_ptr << '\n';
-        		q.pop_front();
-        		error = false;
-        	}
-        }
-
-        if (error)
-        {
-        	std::cout << "error\n";
-        }
-    }
+    calculator.get_result();
 
 	return 0;
 }
