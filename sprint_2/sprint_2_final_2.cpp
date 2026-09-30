@@ -1,4 +1,4 @@
-https://contest.yandex.ru/contest/22781/run-report/166346604/
+// https://contest.yandex.ru/contest/22781/run-report/166346604/
 
 #include <iostream>
 #include <vector>
@@ -14,7 +14,7 @@ https://contest.yandex.ru/contest/22781/run-report/166346604/
 
 -- ДОКАЗАТЕЛЬСТВО КОРРЕКТНОСТИ --
 
-В обратной польской записи в начале записаны операнды, затем 
+В обратной польской записи в начале записаны операнды, затем
 ариметический оператор, что легко реализовывается с помощью стека.
 
 -- ВРЕМЕННАЯ СЛОЖНОСТЬ --
@@ -29,30 +29,30 @@ https://contest.yandex.ru/contest/22781/run-report/166346604/
 */
 
 template <class T>
-class Stack 
+class Stack
 {
 private:
     std::vector<T> items;
 
 public:
-    void push(T item) 
+    void push(T item)
     {
         items.push_back(item);
     }
 
-    T pop() 
+    T pop()
     {
         T lastItem = items.back();
         items.pop_back();
         return lastItem;
     }
 
-    T peek() 
+    T peek()
     {
         return items.back();
     }
 
-    int size() 
+    int size()
     {
         return items.size();
     }
@@ -67,43 +67,32 @@ public:
     {
         if ((token == "+") || (token == "-") || (token == "*") || (token == "/"))  // operator
         {
-            int op1, op2;
             int result;
             char symbol = token[0];
+            int op1 = stack.pop();
+            int op2 = stack.pop();
 
             switch(symbol)
             {
-                case '+': 
+                case '+':
                 {
-                    op1 = stack.pop();
-                    op2 = stack.pop();
-                    result = op2 + op1;
-                    stack.push(result);
-                } 
+                    stack.push(op2 + op1);
+                }
                 break;
-                case '-': 
+                case '-':
                 {
-                    op1 = stack.pop();
-                    op2 = stack.pop();
-                    result = op2 - op1;
-                    stack.push(result);
-                } 
+                    stack.push(op2 - op1);
+                }
                 break;
-                case '*': 
+                case '*':
                 {
-                    op1 = stack.pop();
-                    op2 = stack.pop();
-                    result = op1 * op2;
-                    stack.push(result);
-                } 
+                    stack.push(op1 * op2);
+                }
                 break;
-                case '/': 
+                case '/':
                 {
-                    op1 = stack.pop();
-                    op2 = stack.pop();
-                    result = floor_div(op2, op1);
-                    stack.push(result);
-                } 
+                    stack.push(floor_div(op2, op1));
+                }
                 break;
             }
         }
@@ -125,11 +114,11 @@ public:
         }
     }
 
-    int floor_div(int a, int b) 
+    int floor_div(int a, int b)
     {
         int q = a / b;
         int r = a % b;
-        if (r != 0 && ((r < 0) != (b < 0))) 
+        if (r != 0 && ((r < 0) != (b < 0)))
         {
             --q;
         }
@@ -143,12 +132,11 @@ int main(void)
     std::string token;
     Calculator calculator;
 
-    while (std::cin >> token) 
+    while (std::cin >> token)
     {
         calculator.process_token(token);
     }
 
     calculator.get_result();
-
 	return 0;
 }
