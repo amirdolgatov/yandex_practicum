@@ -1,92 +1,128 @@
-// https://contest.yandex.ru/contest/23815/run-report/167237549/
+// https://contest.yandex.ru/contest/23815/run-report/167403490/
 
 /*
  * ИДЕЯ РЕШЕНИЯ
  *
- * В сломанном массиве расположены два отсортированных подмассива
- * Если нам будет известна грань, то мы можем провести поиск в каждом
- * из них. То есть в начале найти start - минимальный (нулевой) элемент
- * в массиве, и затем провести обычный поиск в двух подмассивах
- * [0, start - 1] - "старший" подмассив
- * [start , last] - "младший" подмассив
+ * Использовать алгоритм разбиения, приведенный в книге автора А.Шень, "Программирование. Теоремы и задачи."
+ * Задача 1.2.32. 
  *
  * СЛОЖНОСТЬ
- * На поиск нулевого элемента потратим O(log(n)) действий
- * На поиск в подмассивах O(log(N1) + O(log(N2) = O(log(n))
- * В сумме получим сложность O(log(n)).
+ * Суммарно все разбиения требуют порядка O(n) операций
+ * Количество рекурсивных вызовов O(log(n))
+ * Итого получим сложность сортировки O(n * log(n)).
  *
  * ПРОСТРАНСТВЕННАЯ СЛОЖНОСТЬ
- * Дополнительной памяти не требуется (кроме входного массива). Стоит учитывать рекурсию и возможное
- * переполнение стека.
-*/
+ * Дополнительной памяти не требуется (кроме входного массива).
+ */
 
 #include <iostream>
 #include <vector>
 
-int partition_1(a[], l, r)
+// Участник соревнований
+class Member
 {
-    int pivot = (l + r) / 2;
+public:
+    int points;         // решенные задачи
+    int penalty;        // штраф
+    std::string login;  // логин
 
-    while (l <= r)
+    Member(int _points, int _penalty, const std::string& _login):
+    points{_points}, penalty{_penalty}, login{_login}
+    {}
+
+     Member() = default;
+
+    // lhs строго меньше rhs
+    static bool is_less(const Member& lhs, const Member& rhs)
     {
-        bool left_ok = (a[l] <= pivot);
-        bool right_ok = (a[r] >= pivot);
-        if (left_ok)
+        if (lhs.points != rhs.points)
         {
-            ++l;
+            return (lhs.points > rhs.points);
         }
-        if (right_ok)
+        if (lhs.penalty != rhs.penalty)
         {
-            r--;
+            return (lhs.penalty < rhs.penalty);
         }
-        if (!left_ok && !right_ok)
+        if (lhs.login != rhs.login)
         {
-            swap(a[], l, r);
-            ++l;
-            r--;
+            return (lhs.login < rhs.login);
         }
+        return false;
     }
-}
 
-int partition_2(a[], l, r)
-{
-    int pivot = (l + r) / 2;
-
-    while (l != r)
+    static bool is_equal(const Member& lhs, const Member& rhs)
     {
-        bool left_ok = (a[l] <= pivot);
-        bool right_ok = (a[r] >= pivot);
-        if (a[l] <= pivot)
+        return (lhs.points == rhs.points) && (lhs.penalty == rhs.penalty) && (lhs.login == rhs.login);
+    }
+};
+
+// Источник идеи: А.Шень, "Программирование. Теоремы и задачи." 2017 г.
+int partition(std::vector<Member>& vec, int l, int r)
+{
+    Member pivot = vec[(l + r) / 2];
+    int m = l - 1;
+    int left = l - 1;
+    int right = r;
+
+    while (m != right)
+    {
+        if (Member::is_equal(vec[m + 1], pivot)) 
         {
-            ++l;
+            m++;
         }
-        else if (a[r] >= pivot)
+        else if (Member::is_less(pivot, vec[m + 1]))
         {
-            r--;
+            std::swap(vec[m + 1], vec[right]);
+            right--;
         }
         else
         {
-            swap(a[], l, r);
+            std::swap(vec[m + 1], vec[left + 1]);
+            m++;
+            left++;
         }
+    }
+    return m;
+}
+
+void quicksort(std::vector<Member>& vec, int l, int r)
+{
+    if (l >= r)
+    {
+        return;
+    }
+
+    int m = partition(vec, l, r);
+    quicksort(vec, l, m - 1);
+    quicksort(vec, m + 1, r);
+}
+
+void print_vector(std::vector<Member>& v)
+{
+    for (const auto& m: v)
+    {
+        std::cout << m.login << '\n';
     }
 }
 
 int main(int argc, char const *argv[])
 {
     int n = 0;
-    int k = 0;
 
     std::cin >> n;
-    std::cin >> k;
 
-    std::vector<int> arr;
-    arr.resize(n);
+    std::vector<Member> v;
+    v.resize(n);
 
-    for (int& num: arr)
+    for (auto& member: v)
     {
-        std::cin >> num;
+        std::cin >> member.login;
+        std::cin >> member.points;
+        std::cin >> member.penalty;
     }
 
-    std::cout << broken_search(arr, k) << std::endl;
+    quicksort(v, 0, v.size() - 1);
+    print_vector(v);
     return 0;
 }
+    
