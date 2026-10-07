@@ -1,10 +1,11 @@
-// https://contest.yandex.ru/contest/23815/run-report/167237549/
+// https://contest.yandex.ru/contest/23815/run-report/167502974/
 
 /*
  * ИДЕЯ РЕШЕНИЯ
  *
  * В сломанном массиве расположены два отсортированных подмассива
- * Если нам будет известна грань, то мы можем провести поиск в каждом
+ * Если нам будет известна грань, то мы можем провести бинарный поиск в каждом
+ * 
  * из них. То есть в начале найти start - минимальный (нулевой) элемент
  * в массиве, и затем провести обычный поиск в двух подмассивах
  * [0, start - 1] - "старший" подмассив
@@ -16,99 +17,70 @@
  * В сумме получим сложность O(log(n)).
  *
  * ПРОСТРАНСТВЕННАЯ СЛОЖНОСТЬ
- * Дополнительной памяти не требуется (кроме входного массива). Стоит учитывать рекурсию и возможное
- * переполнение стека.
+ * Дополнительной памяти не требуется (кроме входного массива).
 */
 
 #include <iostream>
 #include <vector>
 
-
+// инвариант {если x етсь в массиве, то он в полуинтервале [l, r)}
 int binarySearch(const std::vector<int>& arr, int x, int left, int right)
 {
-    if (right <= left)
+    while (left < right)  // работаем на полуинтервале [l, r)
     {
-        // промежуток пуст
-        return -1;
+        // промежуток не пуст
+        int mid = (left + right) / 2;
+        if (arr[mid] == x)
+        {
+            // искомый элемент меньше центрального значит следует искать в левой половине
+            return mid;
+        }
+        else if (x < arr[mid])
+        {
+            // искомый элемент меньше центрального значит следует искать в левой половине
+            right = mid;
+        }
+        else
+        {
+            // иначе следует искать в правой половине
+            left = mid + 1;
+        }
     }
-
-    // промежуток не пуст
-    int mid = (left + right) / 2;
-    if (arr[mid] == x)
-    {
-        // искомый элемент меньше центрального значит следует искать в левой половине
-        return mid;
-    }
-    else if (x < arr[mid])
-    {
-        // искомый элемент меньше центрального значит следует искать в левой половине
-        return binarySearch(arr, x, left, mid);
-    }
-    else
-    {
-        // иначе следует искать в правой половине
-        return binarySearch(arr, x, mid + 1, right);
-    }
+    // промежуток пуст
+    return -1;
 }
 
-
+// инвариант {минимум массива в полуинтервале [l, r)}
 int findZero(const std::vector<int>& arr, int left, int right)
 {
-    if (left >= right)
+    while (left < right)
     {
-        return left;
+        int mid = (left + right) / 2;
+        if (arr[mid] > arr[right])
+        {
+            left = mid + 1; // граница правее
+        }
+        else
+        {
+            right = mid; // граница левее
+        }
     }
 
-    int mid = (left + right) / 2;
-    if (arr[mid] > arr[right])
-    {
-        return findZero(arr, mid + 1, right); // граница правее
-    }
-    else
-    {
-        return findZero(arr, left, mid); // граница левее
-    }
+    return left;
 }
 
 
 int broken_search(const std::vector<int>& vec, int k)
 {
-    int start = findZero(vec, 0, vec.size() - 1);
-    int last = vec.size() - 1;
+    int start = findZero(vec, 0, vec.size() - 1);  // начальный (минимальный) элемент
 
-    if (k >= vec[start] && k <= vec[last])
+    if (k <= vec.back())  // поиск 
     {
-        if (k == vec[start])
-        {
-            return start;
-        }
-        else if (k == vec[last])
-        {
-            return last;
-        }
-        else
-        {
-            return binarySearch(vec, k, start, last);
-        }
-    }
-    else if (start != 0 && k >= vec[0] && k <= vec[start - 1]) // чем дальше в лес, тем больше дров...
-    {
-        if (k == vec[0])
-        {
-            return 0;
-        }
-        else if (k == vec[start - 1])
-        {
-            return start - 1;
-        }
-        else
-        {
-            return binarySearch(vec, k, 0, start - 1);
-        }
+        return binarySearch(vec, k, start, vec.size());
     }
     else
     {
-        return -1;
+        return binarySearch(vec, k, 0, start);
     }
 }
 
