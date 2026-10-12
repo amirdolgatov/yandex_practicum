@@ -36,13 +36,26 @@ int main(int argc, char const *argv[])
     }
 
     // 2. how to calculate relevance?
-    std::vector<std::pair<int, int>> output;
+    std::unordered_map<int, int> result;
     for (auto& request: requests_vector)
     {
         for (auto& word: request)
         {
-
+            auto documents = main_table.find(word);
+            if (documents == main_table.end())
+            {
+                continue;
+            }
+            else
+            {
+                for (auto& [document_id, word_count]: documents)
+                {
+                    result[document_id] += word_count
+                }
+            }
         }
+
+        // now result consisits of relevance of each document
     }
 
     if (t.size() != s.size())

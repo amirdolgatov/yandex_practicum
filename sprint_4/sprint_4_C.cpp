@@ -2,8 +2,6 @@
 #include <vector>
 #include <unordered_map>
 
-
-
 int main(int argc, char const *argv[])
 {
     std::string s, t;
