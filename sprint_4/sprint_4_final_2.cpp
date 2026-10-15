@@ -19,11 +19,13 @@ private:
     entity data_buffer[M] = {};              // массив размером M
     int size = 0;
 
-    inline int hash(int key) const {
+    inline int hash(int key) const
+    {
         return ((key % M) + M) % M;
     }
 
-    inline int linear_probing(int start) const {
+    inline int linear_probing(int start) const
+    {
         return (start + c) % M;
     }
 
