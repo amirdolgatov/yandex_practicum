@@ -1,22 +1,48 @@
+// https://contest.yandex.ru/contest/24414/run-report/168494889/
+
+/*
+ * ИДЕЯ РЕШЕНИЯ
+ *
+ * Используется простейшее хеширование через взятие остатка от деления,
+ * чтобы отобразить диапазон целых чисел в натуральные, используем операцию ((key % M) + M) % M.
+ * Поскольку в C++ операция модуля возвращает отрицательные значения.
+ *
+ * Для разрешеия коллизий применим открытую адресацию.
+ * Поскольку функция хеширования примитивная, нелавинная, применим линейное пробирование.  
+ * Возьмем константу пробирования равную простому числу.  
+ * 
+ * Потребуем чтобы буффер хеш таблицы не заполнялся более чем на 75%.
+ * Для это выберем объем массива M = 131927, при том что занято будет не более 100000 (по условию задачи)
+ *
+ * СЛОЖНОСТЬ
+ * Сложность всех операций O(1),
+ * в худшем случае, когда все клетки заняты, сложность может быть O(M).
+ * 
+ * ПРОСТРАНСТВЕННАЯ СЛОЖНОСТЬ
+ * Памяти нужно не более O(M), M - модуль хеширования
+*/
+
 #include <iostream>
+#include <array>
 #include <string>
+
+enum class state { free = 0, occupied = 1, deleted = 2 };
 
 struct entity
 {
-    int key;
-    int value;
-    bool is_deleted;
-    bool is_occupied;
+    int key = 0;
+    int value = 0;
+    state status = state::free;
 };
 
 class hash_table
 {
 private:
-    static constexpr int M = 131927;         // размер массива и модуль хеша — одно и то же число
+    static constexpr int M = 131927;         // размер массива и модуль хеша
     static constexpr int capacity = 100000;  // максимум ключей
-    static constexpr int c = 41;            // тоже простое число, не слишком большое, чтобы попадать в кэш (вначале было 757)
+    static constexpr int c = 41;             // шаг пробирования
 
-    entity data_buffer[M] = {};              // массив размером M
+    std::array<entity, M> data_buffer{};     // все элементы value-инициализированы
     int size = 0;
 
     inline int hash(int key) const
@@ -36,7 +62,7 @@ public:
         if (size < capacity)
         {
             int index = hash(key);
-            while (data_buffer[index].is_occupied)
+            while (data_buffer[index].status == state::occupied)
             {
                 index = linear_probing(index);
             }
@@ -50,9 +76,10 @@ public:
         if (size != 0)
         {
             int index = hash(key);
-            while (data_buffer[index].is_occupied || data_buffer[index].is_deleted)
+            while (data_buffer[index].status != state::free)
             {
-                if (data_buffer[index].is_occupied && data_buffer[index].key == key)
+                if (data_buffer[index].status == state::occupied &&
+                    data_buffer[index].key == key)
                 {
                     return index;
                 }
@@ -71,8 +98,7 @@ public:
             return false;
         }
 
-        data_buffer[index].is_occupied = false;
-        data_buffer[index].is_deleted = true;
+        data_buffer[index].status = state::deleted;
         size--;
 
         return true;
@@ -80,7 +106,6 @@ public:
 
     bool insert_value(int key, int data)
     {
-        // а может такой уже есть ?
         int index = find_value(key);
         if (index < 0)
         {
@@ -92,8 +117,7 @@ public:
 
             data_buffer[index].key = key;
             data_buffer[index].value = data;
-            data_buffer[index].is_occupied = true;
-            data_buffer[index].is_deleted = false;
+            data_buffer[index].status = state::occupied;
             size++;
         }
         else
@@ -110,10 +134,11 @@ public:
     }
 };
 
-#include <iostream>
-#include <string>
+int main()
+{
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
 
-int main() {
     int n;
     std::cin >> n;
 
@@ -136,13 +161,9 @@ int main() {
             std::cin >> key;
             int idx = table.find_value(key);
             if (idx == -1)
-            {
                 std::cout << "None\n";
-            }
             else
-            {
                 std::cout << table.get_value_at(idx) << "\n";
-            }
         }
         else if (cmd == "delete")
         {
