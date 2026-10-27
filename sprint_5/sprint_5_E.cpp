@@ -14,44 +14,28 @@ struct Node
 #include <cmath>
 #include <iostream>
 #include <cassert>
+#include <climits>
 
 using namespace std;
 
-bool process(const Node* node)
-{
-  bool left_correct = (node->left == nullptr) || (node->left != nullptr && node->value > node->left->value);
-  bool right_correct = (node->right == nullptr) || (node->right != nullptr && node->value < node->right->value);
-  return (left_correct && right_correct);
-}
-
-void traverse(const Node* node, bool& is_bst)
+bool is_bst(const Node* node, int max, int min)
 {
   if (node == nullptr)
   {
-    return;
+    return true;
   }
 
-  if (process(node))
+  if (node->value >= max || node->value <= min)
   {
-    std::cout << " | node is ok " << node->value; 
-    traverse(node->left, is_bst);
-    traverse(node->right, is_bst);
+      return false;
   }
-  else
-  {
-    std::cout << " | node is bad " << node->value; 
-    is_bst = false;
-    return;
-  }
+  return is_bst(node->left, node->value, min) && is_bst(node->right, max, node->value);
 }
 
 
 bool Solution(const Node* root) 
 {
-  bool is_bst = true;
-  traverse(root, is_bst);
-  std::cout << std::endl;
-  return is_bst;
+    return is_bst(root, INT_MAX, INT_MIN);
 } 
 
 
